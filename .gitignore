@@ -1,5 +1,7 @@
 /venv
 /.vscode
 images/*
+cache/*
+**/__pycache__
 **/*.png
 **/*.tif

@@ -1,8 +1,12 @@
 import math
 import os
 import random
+import shutil
 from PIL import Image as Img
 from PIL.Image import Image
+import yandex_cloud
+from config import IMAGES_DIR, CACHE_DIR
+import sys
 
 def resize_images(images: list[list[Image]], target_size: tuple[int, int]) -> list[list[Image]]:
   resized_images: list[list[Image]] = []
@@ -81,15 +85,40 @@ def run_script(folders: list[str]) -> None:
     images_matrix.append([Img.open(img) for img in images[i:i + rows]])
 
   print('Making collage...')
-  create_collage(images_matrix, "collage.tiff")
+  create_collage(images_matrix, "Result.tif")
   print('Collage is ready!')
 
-def main() -> None:
-  folders = ["1369_12_Наклейки 3-D_3"]
+def clear_folders() -> None:
   try:
+    if os.path.exists(CACHE_DIR):
+      shutil.rmtree(CACHE_DIR)
+    os.makedirs(CACHE_DIR)
+
+    if os.path.exists(IMAGES_DIR):
+      shutil.rmtree(IMAGES_DIR)
+    os.makedirs(IMAGES_DIR)
+  except Exception as e:
+    print(f"Error: {e}")
+
+def main() -> None:
+  clear_folders()
+
+  folders = sys.argv[1:]
+  # folders = ["1369_12_Наклейки 3-D_3", "1388_2_Наклейки 3-D_1"]
+  print("Folders:", folders)
+
+  try:
+    info = yandex_cloud.get_info()
+
+    paths = [i['path'] for i in info if i['name'] in folders]
+    for path in paths:
+      yandex_cloud.get_resources(path)
+    
     run_script(folders)
   except Exception as e:
     print(f"Error: {e}")
+  
+  clear_folders()
   
 if __name__ == '__main__':
   main()
